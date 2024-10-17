@@ -3,6 +3,7 @@ from client import vet_api
 import allure
 
 @allure.feature('Post person, positive script')
+@allure.story('POST /person')
 def test_post_get_person(vet_api):
     resp = vet_api.post('person', json={'id': 1, 'name': 'artem'})
     with allure.step("Request sent."):
@@ -24,10 +25,17 @@ def test_post_get_person(vet_api):
 
 
 @allure.feature('Post person, negative scripts')
+@allure.story("GET /person")
 def test_post_negative(vet_api):
     with allure.step("Test non-validating id's"):
         ids = [-1, 'aa', '-q0']
         for id in ids:
             with allure.step(f"Testing {id} id"):
                 resp = vet_api.post('person', json={'id': id, 'name': 'artem1'})
+                assert resp.status_code == 400 or resp.status_code == 500, f"Wrong code, 400 or 500 expected"
+    with allure.step('Test SQL injections'):
+        names = ['123; DELETE * FROM users;']
+        for name in names:
+            with allure.step(f"Testing {id} id"):
+                resp = vet_api.post('person', json={'id': '1', 'name': name})
                 assert resp.status_code == 400 or resp.status_code == 500, f"Wrong code, 400 or 500 expected"
